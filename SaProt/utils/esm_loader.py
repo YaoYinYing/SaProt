@@ -3,7 +3,7 @@ import itertools
 import torch
 
 from esm.model.esm2 import ESM2
-from utils.constants import foldseek_seq_vocab, foldseek_struc_vocab
+from .constants import foldseek_seq_vocab, foldseek_struc_vocab
 
 
 def load_esm_saprot(path: str):

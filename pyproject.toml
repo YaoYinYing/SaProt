@@ -1,0 +1,50 @@
+[tool.poetry]
+name = "SaPrort"
+version = "0.1.0"
+description = "SaProt: Protein Language Modeling with Structure-aware Vocabulary"
+authors = ["Your Name <you@example.com>"]
+
+packages = [
+    { include = "SaProt" },
+    { include = "SaProt/**/*.py" },
+]
+
+readme = "README.md"
+license = "MIT"
+repository = "https://github.com/westlake-repl/SaProt"
+classifiers = [
+    "Topic :: Scientific/Engineering :: Biochemistry",
+    "Topic :: Scientific/Engineering :: Protein Engineering"
+]
+
+
+
+
+[tool.poetry.dependencies]
+python = "^3.8"
+torch = "*"
+torchvision ="*"
+torchaudio = "*"
+pytorch-lightning = "1.8.3"
+wandb = "*"
+transformers = "4.28.0"
+platformdirs = "*"
+easydict = "*"
+biopython = "*"
+scipy = "*"
+peft = "*"
+lmdb = "*"
+pooch = "*"
+torchmetrics = "0.9.3"
+pandas = "*"
+fair-esm = "*"
+huggingface_hub = "*"
+accelerate = "*"
+immutabledict = "*"
+
+
+
+
+[build-system]
+requires = ["poetry-core>=1.0.0,<2.0.0"]
+build-backend = "poetry.core.masonry.api"

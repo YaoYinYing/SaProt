@@ -3,7 +3,7 @@ import torch
 
 
 from torch.nn.functional import binary_cross_entropy_with_logits
-from utils.metrics import count_f1_max
+from .metrics import count_f1_max
 from ..model_interface import register_model
 from .base import SaprotBaseModel
 

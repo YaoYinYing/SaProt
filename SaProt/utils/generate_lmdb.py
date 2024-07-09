@@ -2,7 +2,7 @@ import lmdb
 import os
 
 from tqdm import tqdm
-from utils.others import TimeCounter
+from .others import TimeCounter
 
 
 _10TB = 10995116277760

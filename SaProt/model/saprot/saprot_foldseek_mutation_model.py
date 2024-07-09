@@ -6,9 +6,9 @@ import torchmetrics
 import random
 import numpy as np
 
-from utils.constants import aa_set, foldseek_struc_vocab, aa_list
-from ..model_interface import register_model
-from .base import SaprotBaseModel
+from SaProt.utils.constants import aa_set, foldseek_struc_vocab, aa_list
+from SaProt.model.model_interface import register_model
+from SaProt.model.saprot.base import SaprotBaseModel
 
 
 @register_model

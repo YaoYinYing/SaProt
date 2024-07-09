@@ -5,8 +5,8 @@ import math
 
 from torch.nn import Linear, ReLU
 from torch.nn.functional import cross_entropy
-from ..model_interface import register_model
-from .base import SaprotBaseModel
+from SaProt.model.model_interface import register_model
+from SaProt.model.saprot.base import SaprotBaseModel
 
 
 @register_model

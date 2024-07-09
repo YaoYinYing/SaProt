@@ -5,9 +5,11 @@ import datetime
 import wandb
 
 from pytorch_lightning.loggers import WandbLogger
-from model.model_interface import ModelInterface
-from dataset.data_interface import DataInterface
+
 from pytorch_lightning.strategies import DDPStrategy
+
+from ..model.model_interface import ModelInterface
+from ..dataset.data_interface import DataInterface
 
 
 def load_wandb(config):

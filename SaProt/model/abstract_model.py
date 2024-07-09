@@ -3,7 +3,7 @@ import abc
 import os
 
 import pytorch_lightning as pl
-from utils.lr_scheduler import Esm2LRScheduler
+from ..utils.lr_scheduler import Esm2LRScheduler
 from torch import distributed as dist
 
 

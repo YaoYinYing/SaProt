@@ -1,12 +1,11 @@
 import sys
-sys.path.append('.')
 import yaml
 import argparse
 
 from tqdm import tqdm
 from easydict import EasyDict
-from utils.others import setup_seed
-from utils.module_loader import *
+from SaProt.utils.others import setup_seed
+from SaProt.utils.module_loader import *
 
 
 def run(config):

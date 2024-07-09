@@ -14,23 +14,31 @@ If you have any question about the paper or the code, feel free to raise an issu
 
 <details open><summary><b>Table of contents</b></summary>
 
-- [News](#News)
-- [Overview](#Overview)
-- [Environment installation](#Environment-installation)
-- [Prepare the SaProt model](#Prepare-the-SaProt-model)
-  - [Model checkpoints](#Model-checkpoints)
-  - [New experimental results](#New-experimental-results)
-- [Load SaProt](#Load-SaProt)
-  - [Hugging Face model](#Hugging-Face-model)
-  - [Load SaProt using esm repository](#Load-SaProt-using-esm-repository)
-- [Convert protein structure into structure-aware sequence](#Convert-protein-structure-into-structure-aware-sequence)
-- [Predict mutational effect](#Predict-mutational-effect)
-- [Prepare dataset](#Prepare-dataset)
-  - [Pre-training dataset](#Pre-training-dataset)
-  - [Downstream tasks](#Downstream-tasks)
-- [Fine-tune SaProt](#Fine-tune-SaProt)
-- [Evaluate zero-shot performance](#Evaluate-zero-shot-performance)
-- [Citation](#Citation)
+- [SaProt: Protein Language Modeling with Structure-aware Vocabulary](#saprot-protein-language-modeling-with-structure-aware-vocabulary)
+  - [News](#news)
+  - [Overview](#overview)
+  - [Environment installation](#environment-installation)
+    - [Create a virtual environment](#create-a-virtual-environment)
+    - [Install packages](#install-packages)
+  - [Prepare the SaProt model](#prepare-the-saprot-model)
+    - [Model checkpoints](#model-checkpoints)
+    - [New experimental results](#new-experimental-results)
+      - [35M Model](#35m-model)
+      - [650M  Model](#650m--model)
+      - [AlphaFold2 vs. ESMFold](#alphafold2-vs-esmfold)
+      - [ProteinGym benchmark](#proteingym-benchmark)
+  - [Load SaProt](#load-saprot)
+    - [Hugging Face model](#hugging-face-model)
+    - [Load SaProt using esm repository](#load-saprot-using-esm-repository)
+  - [Convert protein structure into structure-aware sequence](#convert-protein-structure-into-structure-aware-sequence)
+  - [Predict mutational effect](#predict-mutational-effect)
+  - [Prepare dataset](#prepare-dataset)
+    - [Pre-training dataset](#pre-training-dataset)
+    - [Downstream tasks](#downstream-tasks)
+  - [Fine-tune SaProt](#fine-tune-saprot)
+    - [Record the training process (optional)](#record-the-training-process-optional)
+  - [Evaluate zero-shot performance](#evaluate-zero-shot-performance)
+  - [Citation](#citation)
 </details>
 
 ## News
@@ -58,7 +66,7 @@ conda activate SaProt
 ```
 ### Install packages
 ```
-bash environment.sh  
+pip install git+https://github.com/YaoYinYing/SaProt
 ```
 
 ## Prepare the SaProt model
@@ -116,12 +124,13 @@ SaProt achieved first position on ProteinGym benchmark! The [checkpoint](https:/
 
 The following code shows how to load the model based on huggingface class.
 
-```
-from transformers import EsmTokenizer, EsmForMaskedLM
+```python
+import os
+from SaProt.utils.weights import PretrainedModel
 
-model_path = "/your/path/to/SaProt_650M_AF2"
-tokenizer = EsmTokenizer.from_pretrained(model_path)
-model = EsmForMaskedLM.from_pretrained(model_path)
+model, tokenizer = PretrainedModel(
+    dir=os.path.abspath("/path/to/weights/SaProt"), model_name="SaProt_35M_AF2"
+).load_model()
 
 #################### Example ####################
 device = "cuda"
@@ -147,10 +156,13 @@ torch.Size([1, 11, 446])
 User could also load SaProt by [esm](https://github.com/facebookresearch/esm) implementation. The checkpoint is
 stored in the same huggingface folder, named `SaProt_650M_AF2.pt`. We provide a function to load the model.
 ```
-from utils.esm_loader import load_esm_saprot
+import os
+from SaProt.utils.weights import PretrainedModel
 
-model_path = "/your/path/to/SaProt_650M_AF2.pt"
-model, alphabet = load_esm_saprot(model_path)
+model, alphabet = PretrainedModel(
+    dir=os.path.abspath("/path/to/weights/SaProt"), model_name="SaProt_35M_AF2",loader_type='esm'
+).load_model()
+
 ```
 
 ## Convert protein structure into structure-aware sequence
@@ -158,14 +170,18 @@ We provide a function to convert a protein structure into a structure-aware sequ
 [foldseek](https://github.com/steineggerlab/foldseek) 
 binary file to encode the structure. You can download the binary file from [here](https://drive.google.com/file/d/1B_9t3n_nlj8Y3Kpc_mMjtMdY0OPYa7Re/view?usp=sharing) and place it in the `bin` folder
 . The following code shows how to use it.
-```
-from utils.foldseek_util import get_struc_seq
+
+```python
+from SaProt.utils.foldseek_util import get_struc_seq,FoldSeekSetup
 pdb_path = "example/8ac8.cif"
+
+foldseek=FoldSeekSetup(bin_dir='./foldseek/bin',base_url='https://github.com/steineggerlab/foldseek/releases/download/9-427df8a/').foldseek
+print(foldseek)
 
 # Extract the "A" chain from the pdb file and encode it into a struc_seq
 # pLDDT is used to mask low-confidence regions if "plddt_mask" is True. Please set it to True when
 # use AF2 structures for best performance.
-parsed_seqs = get_struc_seq("bin/foldseek", pdb_path, ["A"], plddt_mask=False)["A"]
+parsed_seqs = get_struc_seq(foldseek, pdb_path, ["A"], plddt_mask=False)["A"]
 seq, foldseek_seq, combined_seq = parsed_seqs
 
 print(f"seq: {seq}")
@@ -176,13 +192,29 @@ print(f"combined_seq: {combined_seq}")
 ## Predict mutational effect
 We provide a function to predict the mutational effect of a protein sequence. The example below shows how to predict
 the mutational effect at a specific position.
-```
-from model.saprot.saprot_foldseek_mutation_model import SaprotFoldseekMutationModel
+
+```python
+import os
+from SaProt.model.saprot.saprot_foldseek_mutation_model import (
+    SaprotFoldseekMutationModel,
+)
+from SaProt.utils.foldseek_util import FoldSeekSetup
+from SaProt.utils.weights import PretrainedModel
+
+model_loader = PretrainedModel(
+    dir=os.path.abspath("/path/to/weights/SaProt"),
+    model_name="SaProt_650M_AF2",
+)
+
+foldseek = FoldSeekSetup(
+    bin_dir="./foldseek/bin",
+    base_url="https://github.com/steineggerlab/foldseek/releases/download/9-427df8a/",
+).foldseek
 
 
 config = {
-    "foldseek_path": None,
-    "config_path": "/you/path/to/SaProt_650M_AF2",
+    "foldseek_path": foldseek,
+    "config_path": model_loader.weights_dir,
     "load_pretrained": True,
 }
 model = SaprotFoldseekMutationModel(**config)
@@ -269,7 +301,7 @@ python scripts/compute_clinvar_auc.py -c config/ClinVar/saprot.yaml
 
 ## Citation
 If you find this repository useful, please cite our paper:
-```
+```bibtex
 @article{su2023saprot,
   title={SaProt: Protein Language Modeling with Structure-aware Vocabulary},
   author={Su, Jin and Han, Chenchen and Zhou, Yuyang and Shan, Junjie and Zhou, Xibin and Yuan, Fajie},
