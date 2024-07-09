@@ -35,7 +35,7 @@ class FoldSeekSetup:
 
     # Gather system information
     uname = platform.uname()
-    cpu_info = subprocess.run(['cat', '/proc/cpuinfo'], stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout
+    cpu_info = subprocess.run(['cat', '/proc/cpuinfo'], stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.decode('utf8')
 
     arch: str = uname.machine
 
